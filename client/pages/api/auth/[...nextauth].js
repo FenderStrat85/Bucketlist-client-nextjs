@@ -1,22 +1,13 @@
 import NextAuth from "next-auth";
 import CredentialProvider from "next-auth/providers/credentials";
-import { gql, useMutation } from "@apollo/client";
-
-const LOGIN = gql`
-  mutation LoginUser($loginInput: LoginUserInput) {
-    loginUser(loginInput: $loginInput) {
-      _id
-      accessToken
-    }
-  }
-`;
 
 // const [loginUser, { data, loading, error }] = useMutation(LOGIN);
 
 export default NextAuth({
   providers: [
     CredentialProvider({
-      name: "Sign In",
+      id: "sign-in",
+      name: "User Information",
       credentials: {
         email: {
           label: "Email",
@@ -55,7 +46,63 @@ export default NextAuth({
         }
       },
     }),
+
+    CredentialProvider({
+      id: "create-account",
+      name: "Create Account",
+      credentials: {
+        firstName: {
+          label: "First name",
+          type: "text",
+          placeholder: "name",
+        },
+        lastName: {
+          label: "last name",
+          type: "text",
+          placeholder: "surname",
+        },
+        newUserEmail: {
+          label: "Email",
+          type: "email",
+          placeholder: "johndoe@test.com",
+        },
+        newUserPassword: { label: "Password", type: "password" },
+      },
+      authorize: async (credentials) => {
+        //database look up
+        const newUserInput = {
+          email: credentials.newUserEmail,
+          password: credentials.newUserPassword,
+          firstName: credentials.firstName,
+          lastName: credentials.lastName,
+        };
+        const response = await fetch("http://localhost:4000/", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: `mutation createUser($registrationInput: RegistrationUserInput) {
+                createUser(registrationInput:$registrationInput) {
+                  _id
+                  accessToken
+                }
+              }`,
+            variables: {
+              registrationInput: newUserInput,
+            },
+          }),
+        });
+        const responseData = await response.json();
+        console.log(responseData);
+        if (responseData.data) {
+          return responseData.data.createUser;
+        } else {
+          return null;
+        }
+      },
+    }),
   ],
+
   callbacks: {
     jwt: async ({ token, user }) => {
       console.log("user inside jwt callback", user);
