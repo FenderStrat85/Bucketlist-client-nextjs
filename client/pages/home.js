@@ -4,10 +4,6 @@ import { useRouter } from "next/router";
 const home = () => {
   const { data: session } = useSession();
   const router = useRouter();
-  // console.log(session.user);
-  // if (!session.id) {
-  //   router.push("api/auth/signin");
-  // }
 
   return (
     <div>
