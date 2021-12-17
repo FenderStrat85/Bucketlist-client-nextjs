@@ -108,6 +108,7 @@ export default NextAuth({
       console.log("user inside jwt callback", user);
       if (user) {
         token.id = user.accessToken;
+        token.user = user._id;
       }
       return token;
     },
@@ -115,6 +116,7 @@ export default NextAuth({
       //user object available from authorize => if nothing is returned then a token is not added and thus a session is not created
       if (token) {
         session.id = token.id;
+        session.user = token.user;
       }
       return session;
     },
